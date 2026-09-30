@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # MySQL Database Service
+  mysql_db:
+    image: mysql:8.0
+    container_name: toram_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: toram
+    ports:
+      - "3307:3306"
+    volumes:
+      - toram_db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - toram_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.js Express Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: toram_backend
+    restart: always
+    environment:
+      PORT: 5000
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: toram
+      FRONTEND_URL: http://localhost:3000
+      NGROK_AUTHTOKEN: 2ZcYV3J4cnxNGLiA5QY2uAUzbWp_215sNqYSFHBshFVX7UB3T
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    networks:
+      - toram_net
+
+  # Next.js Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: toram_frontend
+    restart: always
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://backend:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - toram_net
+
+volumes:
+  toram_db_data:
+
+networks:
+  toram_net:
+    driver: bridge

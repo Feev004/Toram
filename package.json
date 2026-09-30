@@ -1,0 +1,27 @@
+{
+  "name": "toram-fullstack-suite",
+  "description": "Toram Online Fullstack Web Application with Next.js, Node.js, MySQL, and DevOps Suite",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "start:local": "start-local.bat",
+    "tunnel": "node scripts/start-tunnel.js",
+    "docker:up": "docker-compose up --build -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "toram",
+    "nextjs",
+    "nodejs",
+    "mysql",
+    "devops",
+    "ngrok"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

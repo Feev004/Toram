@@ -1,0 +1,45 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: toram
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+
+    - name: Seed MySQL Database
+      run: |
+        mysql -h 127.0.0.1 -u root -proot toram < database/init.sql
+
+    - name: Install & Test Backend
+      run: |
+        cd backend
+        npm ci
+        node -e "require('./config/db'); console.log('DB module load test passed');"
+
+    - name: Install & Build Frontend (Next.js)
+      run: |
+        cd frontend
+        npm ci
+        npm run build
